@@ -1,0 +1,63 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+// Auth Model
+model User {
+    id             Int       @id @default(autoincrement())
+    name           String?   @db.VarChar(255)
+    email          String?   @db.VarChar(255)
+    email_verified DateTime? @db.Timestamp(6)
+    password       String?
+    image          String?   @db.VarChar(255)
+    createdAt      DateTime  @default(now())
+    updatedAt      DateTime  @updatedAt
+    // Relations
+    Session        Session[]
+    Account        Account[]
+}
+
+model Account {
+    id                   Int       @id @default(autoincrement())
+    compound_id          String    @db.VarChar(255)
+    provider_type        String    @db.VarChar(255)
+    provider_id          String    @db.VarChar(255)
+    provider_account_id  String    @db.VarChar(255)
+    refresh_token        String?   @db.Text
+    access_token         String?   @db.Text
+    access_token_expires DateTime? @db.Timestamp(6)
+    createdAt            DateTime  @default(now())
+    updatedAt            DateTime  @updatedAt
+    // Relations
+    user_id              Int
+    user                 User      @relation(fields: [user_id], references: [id])
+}
+
+model Session {
+    id            Int      @id @default(autoincrement())
+    expires       DateTime @db.Timestamp(6)
+    session_token String   @db.VarChar(255)
+    access_token  String   @db.VarChar(255)
+    createdAt     DateTime @default(now())
+    updatedAt     DateTime @updatedAt
+    // Relations
+    user          User     @relation(fields: [user_id], references: [id])
+    user_id       Int
+}
+
+model VerificationRequest {
+    id         Int      @id @default(autoincrement())
+    identifier String   @db.VarChar(255)
+    token      String   @db.VarChar(255)
+    expire     DateTime @db.Timestamp(6)
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @updatedAt
+}
