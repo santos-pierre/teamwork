@@ -1,6 +1,30 @@
+import { FormEvent, useRef } from 'react';
 import Layout from '../components/Layout';
 
 const SignUpPage = () => {
+    const emailInput = useRef(null);
+    const nameInput = useRef(null);
+    const passwordInput = useRef(null);
+    const passwordConfirmationInput = useRef(null);
+
+    const handleSignUp = async (event: FormEvent<HTMLElement>) => {
+        event.preventDefault();
+
+        const res = await fetch('/api/auth/signup', {
+            method: 'POST',
+            body: JSON.stringify({
+                email: 'John@gmail.com',
+                name: 'John Doe',
+                password: 'password',
+                password_confirmation: 'password',
+            }),
+        });
+
+        const data = await res.json();
+
+        console.log(data);
+    };
+
     return (
         <Layout title="Create your account">
             <section className="min-h-screen bg-gradient-to-b from-blue-800 to-blue-500 flex flex-col justify-center py-12 sm:px-6 lg:px-8 items-center relative z-0">
@@ -20,7 +44,7 @@ const SignUpPage = () => {
                         </p>
                     </div>
                     <div className="mt-6">
-                        <form className="space-y-6">
+                        <form className="space-y-6" onSubmit={handleSignUp}>
                             <div className="space-y-1">
                                 <label
                                     htmlFor="email"
@@ -36,6 +60,7 @@ const SignUpPage = () => {
                                         type="email"
                                         autoComplete="email"
                                         required
+                                        ref={emailInput}
                                         className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                                     />
                                 </div>
@@ -55,6 +80,7 @@ const SignUpPage = () => {
                                         type="text"
                                         autoComplete="name"
                                         required
+                                        ref={nameInput}
                                         className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                                     />
                                 </div>
@@ -74,6 +100,7 @@ const SignUpPage = () => {
                                         autoComplete="current-password"
                                         required
                                         placeholder="Password"
+                                        ref={passwordInput}
                                         className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                                     />
                                 </div>
@@ -92,6 +119,7 @@ const SignUpPage = () => {
                                         type="password"
                                         autoComplete="current-password"
                                         required
+                                        ref={passwordConfirmationInput}
                                         className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                                     />
                                 </div>
