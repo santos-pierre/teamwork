@@ -7,17 +7,18 @@ const SignUpPage = () => {
     const passwordInput = useRef(null);
     const passwordConfirmationInput = useRef(null);
 
-    const handleSignUp = async (event: FormEvent<HTMLElement>) => {
+    const handleSignUp = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+
+        let formData = new FormData(event.currentTarget);
+        let userData: { [key: string]: FormDataEntryValue } = {};
+        formData.forEach((value, key) => {
+            userData[key] = value;
+        });
 
         const res = await fetch('/api/auth/signup', {
             method: 'POST',
-            body: JSON.stringify({
-                email: 'John@gmail.com',
-                name: 'John Doe',
-                password: 'password',
-                password_confirmation: 'password',
-            }),
+            body: JSON.stringify(userData),
         });
 
         const data = await res.json();

@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import Validator from 'validatorjs';
 
 import { PrismaClient } from '@prisma/client';
+import { emailAlreadyExist } from '../../../utils/auth';
 
 type UserForm = {
     name: string;
@@ -19,24 +20,6 @@ const handler = async ({ method, body }: NextApiRequest, res: NextApiResponse) =
 
     let { name, email, password, password_confirmation } = JSON.parse(body) as UserForm;
 
-    Validator.registerAsync(
-        'email_available',
-        async (email, attributes, req, passes) => {
-            try {
-                const user = await prisma.user.findUnique({
-                    where: {
-                        email: email as string,
-                    },
-                });
-                if (user) throw new Error('Email already taken');
-                passes(true);
-            } catch (error) {
-                passes(false);
-            }
-        },
-        'The :attribute has already been taken'
-    );
-
     let data = {
         name,
         email,
@@ -46,28 +29,36 @@ const handler = async ({ method, body }: NextApiRequest, res: NextApiResponse) =
 
     let rules = {
         name: 'required',
-        email: ['required', 'email', 'regex:/^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$/', 'email_available'],
+        email: ['required', 'email', 'regex:/^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$/'],
         password: 'required|min:8|confirmed',
     };
 
     let validation = new Validator(data, rules);
 
-    const passes = async () => {
-        const newUser = await prisma.user.create({
-            data: {
-                name: name,
-                email: email,
-                password: password,
+    if (validation.fails()) {
+        return res.status(422).json({ message: 'Unprocessable Entity', errors: validation.errors.all() });
+    }
+
+    if (await emailAlreadyExist(email, prisma)) {
+        return res.status(422).json({
+            message: 'Unprocessable Entity',
+            errors: {
+                email: ['This email is already taken.'],
             },
         });
-        return res.status(201).json(newUser);
-    };
+    }
 
-    const fails = () => {
-        return res.status(422).json({ message: 'Unprocessable Entity', errors: validation.errors.all() });
-    };
+    await prisma.user.create({
+        data: {
+            name: name,
+            email: email,
+            password: password,
+        },
+    });
 
-    validation.checkAsync(passes, fails);
+    await prisma.$disconnect();
+
+    return res.status(201).json({ message: 'User Created!' });
 };
 
 export default handler;
