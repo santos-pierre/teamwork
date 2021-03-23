@@ -35,10 +35,6 @@ const handler = async ({ method, body }: NextApiRequest, res: NextApiResponse) =
 
     let validation = new Validator(data, rules);
 
-    if (validation.fails()) {
-        return res.status(422).json({ message: 'Unprocessable Entity', errors: validation.errors.all() });
-    }
-
     if (await emailAlreadyExist(email, prisma)) {
         return res.status(422).json({
             message: 'Unprocessable Entity',
@@ -46,6 +42,10 @@ const handler = async ({ method, body }: NextApiRequest, res: NextApiResponse) =
                 email: ['This email is already taken.'],
             },
         });
+    }
+
+    if (validation.fails()) {
+        return res.status(422).json({ message: 'Unprocessable Entity', errors: validation.errors.all() });
     }
 
     await prisma.user.create({
