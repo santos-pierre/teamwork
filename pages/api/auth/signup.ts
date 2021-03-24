@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import Validator from 'validatorjs';
-
+import bcrypt from 'bcrypt';
 import { PrismaClient } from '@prisma/client';
 import { emailAlreadyExist } from '../../../utils/auth';
 
@@ -48,15 +48,16 @@ const handler = async ({ method, body }: NextApiRequest, res: NextApiResponse) =
         return res.status(422).json({ message: 'Unprocessable Entity', errors: validation.errors.all() });
     }
 
+    // Genereate hash password
+    const hashedpassword = await bcrypt.hash(password, 10);
+
     await prisma.user.create({
         data: {
             name: name,
             email: email,
-            password: password,
+            password: hashedpassword,
         },
     });
-
-    await prisma.$disconnect();
 
     return res.status(201).json({ message: 'User Created!' });
 };
