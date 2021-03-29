@@ -31,5 +31,12 @@ export default NextAuth({
                 return null;
             },
         }),
+        Providers.GitHub({
+            clientId: process.env.GITHUB_CLIENT_ID!,
+            clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+        }),
     ],
+    pages: {
+        signIn: '/signin',
+    },
 });
